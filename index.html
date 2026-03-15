@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -35,7 +34,7 @@
   .game-card .status{font-family:'Lato',sans-serif;font-size:11px;color:var(--rose-mid);margin-top:4px;}
   .progress-bar{height:4px;background:var(--rose-light);border-radius:99px;margin:1rem 0;overflow:hidden;}
   .progress-fill{height:100%;background:var(--rose-mid);border-radius:99px;transition:width 0.5s;}
-  #catchCanvas{display:block;margin:0 auto;border-radius:16px;border:1px solid var(--rose-light);background:#fff;cursor:none;}
+  
   .score-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:'Lato',sans-serif;font-size:13px;color:var(--rose);}
   #wheelCanvas{display:block;margin:0 auto;}
   .spin-row{display:flex;justify-content:center;gap:12px;margin-top:1rem;flex-wrap:wrap;}
@@ -107,7 +106,7 @@
     <p>Déplace la souris pour attraper les gâteaux.<br>Évite les bombes.</p>
     <div class="gap">
       <div class="score-row"><span>Score : <strong id="catch-score">0</strong></span><span>Temps : <strong id="catch-time">20</strong>s</span></div>
-      <canvas id="catchCanvas" width="340" height="210"></canvas>
+      <canvas id="catchCanvas" height="210" style="width:100%;max-width:340px;border-radius:16px;border:1px solid var(--rose-light);background:#fff;cursor:none;display:block;margin:0 auto;"></canvas>
     </div>
     <div class="center gap" id="catch-result" style="display:none;">
       <div class="unlock-box"><p id="catch-msg"></p></div>
@@ -223,12 +222,12 @@ function launchConfetti(){
 
 
 var catchRunning=false,catchTimer,catchScore=0,catchTimeLeft=20,catchItems=[],mx=170,my=105,catchCtx;
-function startCatch(){catchScore=0;catchTimeLeft=20;catchItems=[];catchRunning=true;document.getElementById('catch-result').style.display='none';document.getElementById('catch-score').textContent='0';document.getElementById('catch-time').textContent='20';var canvas=document.getElementById('catchCanvas');catchCtx=canvas.getContext('2d');canvas.onmousemove=function(e){var r=canvas.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;};canvas.ontouchmove=function(e){e.preventDefault();var r=canvas.getBoundingClientRect();mx=e.touches[0].clientX-r.left;my=e.touches[0].clientY-r.top;};clearInterval(catchTimer);catchTimer=setInterval(catchTick,1000);spawnItem();requestAnimationFrame(catchDraw);}
-function spawnItem(){if(!catchRunning)return;catchItems.push({x:30+Math.random()*280,y:-24,isCake:Math.random()<0.7,speed:1.8+Math.random()*2});setTimeout(spawnItem,650);}
+function startCatch(){catchScore=0;catchTimeLeft=20;catchItems=[];catchRunning=true;document.getElementById('catch-result').style.display='none';document.getElementById('catch-score').textContent='0';document.getElementById('catch-time').textContent='20';var canvas=document.getElementById('catchCanvas');canvas.width=canvas.offsetWidth||340;catchCtx=canvas.getContext('2d');canvas.onmousemove=function(e){var r=canvas.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;};canvas.ontouchmove=function(e){e.preventDefault();var r=canvas.getBoundingClientRect();mx=e.touches[0].clientX-r.left;my=e.touches[0].clientY-r.top;};clearInterval(catchTimer);catchTimer=setInterval(catchTick,1000);spawnItem();requestAnimationFrame(catchDraw);}
+function spawnItem(){if(!catchRunning)return;var cw=document.getElementById('catchCanvas').width;catchItems.push({x:30+Math.random()*(cw-60),y:-24,isCake:Math.random()<0.7,speed:1.8+Math.random()*2});setTimeout(spawnItem,650);}
 function drawCake(ctx,x,y){ctx.save();ctx.translate(x,y);ctx.fillStyle='#8B2252';ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-14,-10,28,20,4);else ctx.rect(-14,-10,28,20);ctx.fill();ctx.fillStyle='#E8A0C0';ctx.fillRect(-10,-6,20,8);ctx.strokeStyle='#FDF6F0';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(-4,-6);ctx.lineTo(-4,2);ctx.stroke();ctx.beginPath();ctx.moveTo(4,-6);ctx.lineTo(4,2);ctx.stroke();ctx.fillStyle='#A0744A';ctx.fillRect(-1.5,-18,3,10);ctx.fillStyle='#F4C75A';ctx.beginPath();ctx.ellipse(0,-20,2.5,3.5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.5)';ctx.beginPath();ctx.ellipse(0,-21,1,1.5,0,0,Math.PI*2);ctx.fill();ctx.restore();}
 function drawBomb(ctx,x,y){ctx.save();ctx.translate(x,y);ctx.fillStyle='#444';ctx.beginPath();ctx.arc(0,2,12,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#777';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(6,-6);ctx.lineTo(10,-14);ctx.stroke();ctx.fillStyle='#F4C75A';ctx.beginPath();ctx.arc(10,-14,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,0.3)';ctx.beginPath();ctx.arc(-3,0,3,0,Math.PI*2);ctx.fill();ctx.restore();}
 function catchTick(){catchTimeLeft--;document.getElementById('catch-time').textContent=catchTimeLeft;if(catchTimeLeft<=0){catchRunning=false;clearInterval(catchTimer);catchEnd();}}
-function catchDraw(){if(!catchCtx)return;catchCtx.clearRect(0,0,340,210);var alive=[];for(var i=0;i<catchItems.length;i++){var it=catchItems[i];it.y+=it.speed;var hit=Math.abs(mx-it.x)<24&&Math.abs(my-it.y)<24;if(hit&&catchRunning){if(it.isCake)catchScore++;else catchScore=Math.max(0,catchScore-1);document.getElementById('catch-score').textContent=catchScore;}else if(it.y<230&&!hit){if(it.isCake)drawCake(catchCtx,it.x,it.y);else drawBomb(catchCtx,it.x,it.y);alive.push(it);}}catchItems=alive;catchCtx.beginPath();catchCtx.arc(mx,my,18,0,Math.PI*2);catchCtx.fillStyle='rgba(139,34,82,0.12)';catchCtx.fill();catchCtx.strokeStyle='rgba(139,34,82,0.4)';catchCtx.lineWidth=1.5;catchCtx.stroke();if(catchRunning)requestAnimationFrame(catchDraw);}
+function catchDraw(){if(!catchCtx)return;var cW=catchCtx.canvas.width;catchCtx.clearRect(0,0,cW,210);var alive=[];for(var i=0;i<catchItems.length;i++){var it=catchItems[i];it.y+=it.speed;var hit=Math.abs(mx-it.x)<24&&Math.abs(my-it.y)<24;if(hit&&catchRunning){if(it.isCake)catchScore++;else catchScore=Math.max(0,catchScore-1);document.getElementById('catch-score').textContent=catchScore;}else if(it.y<230&&it.x>-20&&it.x<cW+20&&!hit){if(it.isCake)drawCake(catchCtx,it.x,it.y);else drawBomb(catchCtx,it.x,it.y);alive.push(it);}}catchItems=alive;catchCtx.beginPath();catchCtx.arc(mx,my,18,0,Math.PI*2);catchCtx.fillStyle='rgba(139,34,82,0.12)';catchCtx.fill();catchCtx.strokeStyle='rgba(139,34,82,0.4)';catchCtx.lineWidth=1.5;catchCtx.stroke();if(catchRunning)requestAnimationFrame(catchDraw);}
 function catchEnd(){var msgs=['Imbattable ! Tu attrapes les gâteaux comme tu attrapes les cœurs.',''+catchScore+' gâteaux ! Autant de raisons de te gâter aujourd\'hui.','Le vrai gâteau t\'attend dans la vraie vie. Et il sera délicieux.'];document.getElementById('catch-msg').textContent=msgs[catchScore>10?0:catchScore>4?1:2];document.getElementById('catch-result').style.display='block';}
 
 var wheelAngle=0,wheelSpinning=false,wheelDone=false;
